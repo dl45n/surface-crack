@@ -1,36 +1,15 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-
 import numpy as np
 from tensorflow.python.framework import ops
-
-
-# In[88]:
-
-
-pip install tensorflow==1.14
-
-
-# In[2]:
-
-
 import h5py
-
-
-# In[4]:
-
-
 import matplotlib.pyplot as plt
 import os
 import cv2
 from tqdm import tqdm
+import random
+import math
+import tensorflow as tf
 
-
-DATADIR = "D:/Surface/Train"
+DATADIR = #"D:/Surface/Train"
 
 CATEGORIES = ["Plain", "Cracked"]
 
@@ -41,20 +20,14 @@ for category in CATEGORIES:
         plt.imshow(img_array)  # graph it
         plt.show()  # display!
 
-        break  # we just want one for now so break
-    break  #...and one more!
-
-
-# In[5]:
+        break  #to display just one picture
+    break 
 
 
 IMG_SIZE = 150
 new_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
 plt.imshow(new_array)
 plt.show()
-
-
-# In[6]:
 
 
 training_data = []
@@ -74,25 +47,9 @@ def create_training_data():
 create_training_data()
 print(len(training_data))
 
-
-# In[7]:
-
-
-import random
-import math
-
 random.shuffle(training_data)
-
-
-# In[8]:
-
-
 for sample in training_data[:10]:
-    print(sample[1])
-
-
-# In[9]:
-
+    print(sample[1]) # just to check
 
 train_X_orig = []
 Y_train = []
@@ -101,33 +58,15 @@ for features, label in training_data:
     Y_train.append(label)
 
 train_X_orig = np.array(train_X_orig).reshape(-1, IMG_SIZE, IMG_SIZE, 3)
-#print(train_X_orig)
-#print(Y_train)
-
-
-# In[10]:
-
-
 train_X_flatten = train_X_orig.reshape(train_X_orig.shape[0], -1).T
 print ("train_X_flatten shape: " + str(train_X_flatten.shape))
 
-
-# In[11]:
-
-
 X_train = train_X_flatten / 255
-
-
-# In[12]:
-
 
 print(X_train.shape)
 
 
-# In[13]:
-
-
-DATADIR2 = "D:/Surface/Test"
+DATADIR2 = #"D:/Surface/Test"
 
 CATEGORIES2 = ["Plain", "Cracked"]
 
@@ -138,21 +77,14 @@ for category in CATEGORIES2:
         plt.imshow(img_array2)  # graph it
         plt.show()  # display!
 
-        break  # we just want one for now so break
-    break  #...and one more!
-
-
-# In[14]:
+        break  # to display just one picture
+    break 
 
 
 IMG_SIZE = 150
 new_array2 = cv2.resize(img_array2, (IMG_SIZE, IMG_SIZE))
 plt.imshow(new_array2)
 plt.show()
-
-
-# In[15]:
-
 
 test_data = []
 def create_test_data():
@@ -170,22 +102,10 @@ def create_test_data():
                 pass
 create_test_data()
 
-
-# In[16]:
-
-
 random.shuffle(test_data)
 
-
-# In[17]:
-
-
 for sample in test_data[:10]:
-    print(sample[1])
-
-
-# In[18]:
-
+    print(sample[1]) #just to check
 
 test_X_orig = []
 Y_test = []
@@ -193,49 +113,20 @@ for features, label in test_data:
     test_X_orig.append(features)
     Y_test.append(label)
 test_X_orig = np.array(test_X_orig).reshape(-1, IMG_SIZE, IMG_SIZE, 3)
-#print(test_X_orig)
-#print(Y_test)
-
-
-# In[19]:
-
 
 test_X_flatten = test_X_orig.reshape(test_X_orig.shape[0], -1).T
 print ("test_X_flatten shape: " + str(test_X_flatten.shape))
 
-
-# In[20]:
-
-
 X_test = test_X_flatten / 255
-
-
-# In[21]:
-
-
-import tensorflow as tf
-
-
-# In[22]:
 
 
 def placeholder(n_x):
     X = tf.placeholder(tf.float32, shape=(n_x, None), name='X')
-    Y = tf.placeholder(tf.float32, shape=(1, None), name='Y')
+    Y = tf.placeholder(tf.float32, shape=(1, None), name='Y') # add a second argument for multi-class classification and use it in place of 1 for 'Y' placeholder
     return X, Y
 
 
-# In[23]:
-
-
 def init_param():
-    ''' W1 = [n1, n_x]
-        b1 = [n1, 1]
-        W2 = [n2, n1]
-        b2 = [n2, 1]
-        W3 = [n3, n2]
-        b3 = [n3, 1]'''
-    
     W1 = tf.get_variable("W1", [20,67500], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
     b1 = tf.get_variable("b1", [20,1], initializer = tf.zeros_initializer())
     W2 = tf.get_variable("W2", [15,20], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
@@ -250,9 +141,6 @@ def init_param():
                   "W3": W3,
                   "b3": b3}
     return parameters
-
-
-# In[24]:
 
 
 def for_prop(X, parameters):
@@ -270,30 +158,17 @@ def for_prop(X, parameters):
     A2 = tf.nn.relu(Z2) 
     Z3 = tf.add(tf.matmul(W3, A2), b3)
     
-    
     return Z3
 
 
-# In[25]:
-
-
 def comp_cost(Z3, Y):
-    '''W1 = parameters['W1']
-    b1 = parameters['b1']
-    W2 = parameters['W2']
-    b2 = parameters['b2']
-    W3 = parameters['W3']
-    b3 = parameters['b3']'''
-    
     logits = tf.transpose(Z3)
     labels = tf.transpose(Y)
     
     cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=labels)) 
-    #0.001*(tf.nn.l2_loss(W1) + tf.nn.l2_loss(W2) + tf.nn.l2_loss(W3))
+    #0.001*(tf.nn.l2_loss(W1) + tf.nn.l2_loss(W2) + tf.nn.l2_loss(W3)) #use if you want to ass L2 regularization
+    
     return cost
-
-
-# In[26]:
 
 
 def random_mini_batches(X, Y, mini_batch_size = 16, seed = 0):
@@ -301,11 +176,7 @@ def random_mini_batches(X, Y, mini_batch_size = 16, seed = 0):
     m = X.shape[1]      
     mini_batches = []
         
-    # Step 1: Shuffle (X, Y)
-    '''permutation = list(np.random.permutation(m))
-    shuffled_X = X[:, permutation]
-    shuffled_Y = Y[:, permutation]'''
-    # Step 2: Partition (shuffled_X, shuffled_Y). Minus the end case.
+    # Step 1: Partition (shuffled_X, shuffled_Y). Minus the end case.
     num_complete_minibatches = math.floor(m/mini_batch_size) # number of mini batches of size mini_batch_size in your partitionning
     for k in range(0, num_complete_minibatches):
         mini_batch_X = X[:, k * mini_batch_size: (k+1)*mini_batch_size]
@@ -320,9 +191,6 @@ def random_mini_batches(X, Y, mini_batch_size = 16, seed = 0):
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
     return mini_batches
-
-
-# In[29]:
 
 
 def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001,
@@ -400,7 +268,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001,
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         
         
-        '''# Calculate the correct predictions
+        '''# Calculate the correct predictions                                        # for multi-class classification 
         correct_prediction = tf.equal(A3, Y)
 
         # Calculate accuracy on the test set
@@ -415,13 +283,8 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001,
         return parameters
 
 
-# In[30]:
-
-
 parameters = model(X_train, Y_train, X_test, Y_test)
 
-
-# In[ ]:
 
 
 
